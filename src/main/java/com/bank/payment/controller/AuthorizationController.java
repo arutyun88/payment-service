@@ -1,6 +1,7 @@
 package com.bank.payment.controller;
 
 import com.bank.payment.configuration.jwt.JwtProvider;
+import com.bank.payment.model.RoleEntity;
 import com.bank.payment.model.dto.RegistrationRequestDto;
 import com.bank.payment.model.dto.RequestDto;
 import com.bank.payment.model.dto.ResponseUserDto;
@@ -23,7 +24,12 @@ public class AuthorizationController {
         UserEntity userEntity = new UserEntity();
         userEntity.setPassword(registrationRequestDto.getPassword());
         userEntity.setLogin(registrationRequestDto.getLogin());
-        userService.saveUser(userEntity);
+        userEntity.setFirstName(registrationRequestDto.getFirstName());
+        userEntity.setLastName(registrationRequestDto.getLastName());
+        userEntity.setCurrencyType("USD");
+        userEntity.setBalance(8.0d);
+        userEntity.setActive(true);
+        userService.saveUser(userEntity, registrationRequestDto.getRole());
         return "OK";
     }
 
@@ -34,7 +40,7 @@ public class AuthorizationController {
         return new ResponseUserDto(token);
     }
 
-//    todo перед каждым запросом проверять в jwtFilter на соответствие предоставленного пользователем токена хранящемуся в бд user_token
+//    todo перед каждым запросом проверять в jwtFilter на соответствие предоставленного пользователем токена хранящемуся в бд token_table
 //    todo user может осуществлять платежи только если авторизован со своим токеном
 
     //todo список всех платежей всех пользователей - доступ только для админа

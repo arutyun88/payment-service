@@ -22,8 +22,14 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public void saveUser(UserEntity userEntity) {
-        RoleEntity userRole = roleEntityRepository.findByName("ROLE_USER");
+    public void saveUser(UserEntity userEntity, String role) {
+
+        RoleEntity userRole;
+        if ("admin".equals(role)) {
+            userRole = roleEntityRepository.findByName("ROLE_ADMIN");
+        } else {
+            userRole = roleEntityRepository.findByName("ROLE_USER");
+        }
         userEntity.setRoleEntity(userRole);
         userEntity.setPassword(passwordEncoder.encode(userEntity.getPassword()));
         userEntityRepository.save(userEntity);

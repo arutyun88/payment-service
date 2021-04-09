@@ -18,7 +18,10 @@
 ```json
 {
   "login": "user",
-  "password": "user"
+  "password": "user",
+  "role": "user",
+  "firstName": "Ivan",
+  "lastName": "Ivanov"
 }
 ```
 Пример запроса на авторизацию пользователя:

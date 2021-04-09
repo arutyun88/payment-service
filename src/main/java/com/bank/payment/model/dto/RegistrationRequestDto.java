@@ -12,4 +12,13 @@ public class RegistrationRequestDto {
 
     @NotEmpty
     private String password;
+
+    @NotEmpty
+    private String role;
+
+    @NotEmpty
+    private String firstName;
+
+    @NotEmpty
+    private String lastName;
 }

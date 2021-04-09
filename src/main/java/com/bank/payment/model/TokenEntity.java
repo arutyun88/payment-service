@@ -7,7 +7,7 @@ import java.util.Date;
 
 @Entity
 @Data
-@Table(name = "user_token")
+@Table(name = "token_table")
 public class TokenEntity {
 
     @Id
@@ -23,4 +23,7 @@ public class TokenEntity {
 
     @Column(name = "expire_date")
     private Date expireDate;
+
+    @Column(name = "status")
+    private boolean isActive;
 }

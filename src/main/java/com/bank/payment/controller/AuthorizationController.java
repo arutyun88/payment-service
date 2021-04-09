@@ -34,6 +34,8 @@ public class AuthorizationController {
         return new ResponseUserDto(token);
     }
 
+//    todo перед каждым запросом проверять в jwtFilter на соответствие предоставленного пользователем токена хранящемуся в бд user_token
+
     //todo список всех платежей всех пользователей - доступ только для админа
     @GetMapping("/admin/{admin_name}/payments")
     public ResponseUserDto getPaymentsForAdmin(@PathVariable(name = "admin_name") String adminName) {

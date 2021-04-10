@@ -1,21 +1,26 @@
 package com.bank.payment.controller;
 
 import com.bank.payment.configuration.jwt.JwtProvider;
-import com.bank.payment.model.RoleEntity;
+import com.bank.payment.exception.JwtAuthenticationException;
 import com.bank.payment.model.dto.RegistrationRequestDto;
 import com.bank.payment.model.dto.RequestDto;
 import com.bank.payment.model.dto.ResponseUserDto;
 import com.bank.payment.model.UserEntity;
+import com.bank.payment.service.TokenService;
 import com.bank.payment.service.UserService;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 public class AuthorizationController {
     private final UserService userService;
+    private final TokenService tokenService;
     private final JwtProvider jwtProvider;
 
-    public AuthorizationController(UserService userService, JwtProvider jwtProvider) {
+    public AuthorizationController(UserService userService,
+                                   TokenService tokenService,
+                                   JwtProvider jwtProvider) {
         this.userService = userService;
+        this.tokenService = tokenService;
         this.jwtProvider = jwtProvider;
     }
 
@@ -41,6 +46,7 @@ public class AuthorizationController {
     }
 
 //    todo перед каждым запросом проверять в jwtFilter на соответствие предоставленного пользователем токена хранящемуся в бд token_table
+//    todo ? требуется ли это, если onFilter осуществляет проверку каждого запроса
 //    todo user может осуществлять платежи только если авторизован со своим токеном
 
     //todo список всех платежей всех пользователей - доступ только для админа
@@ -59,11 +65,12 @@ public class AuthorizationController {
         return new ResponseUserDto(login);
     }
 
-    //todo выход пользователя из системы - token размещается в игнор лист в бд
+    //todo выход пользователя из системы - token размещается в игнор лист в бд и становится недействительным
     @PostMapping("/user/{user}/logout")
     public String logout(@PathVariable(name = "user") String username) {
+        String token = jwtProvider.getTokenFromUsername();
         UserEntity userEntity = userService.findByLogin(username);
-        String login = userEntity.getLogin();
-        return "OK" + " " + login;
+        tokenService.addTokenInIgnoreList(token, userEntity);
+        return username + " logged out";
     }
 }

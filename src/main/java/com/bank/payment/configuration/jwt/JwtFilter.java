@@ -1,8 +1,6 @@
 package com.bank.payment.configuration.jwt;
 
 import com.bank.payment.exception.JwtAuthenticationException;
-import com.bank.payment.model.TokenEntity;
-import com.bank.payment.repository.TokenEntityRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -20,21 +18,20 @@ import java.io.IOException;
 
 @Component
 public class JwtFilter extends GenericFilterBean {
-
-    @Autowired
-    private JwtProvider jwtProvider;
+    private final JwtProvider jwtProvider;
 
     @Autowired
     private CustomUserDetailsService customUserDetailsService;
-
-    @Autowired
-    private TokenEntityRepository tokenEntityRepository;
 
     @Value("${jrt.token.key}")
     private String TOKEN_KEY;
 
     @Value("${jwt.token.header}")
     private String HEADER_VALUE;
+
+    public JwtFilter(JwtProvider jwtProvider) {
+        this.jwtProvider = jwtProvider;
+    }
 
     @Override
     public void doFilter (
@@ -50,10 +47,6 @@ public class JwtFilter extends GenericFilterBean {
         }
 
         if (token != null && jwtProvider.validateToken(token)) {
-            TokenEntity tokenEntity = tokenEntityRepository.findByTokenName(token);
-            if (tokenEntity != null && token.equals(tokenEntity.getTokenName())) {
-                throw new JwtAuthenticationException("Access denied. Please register or login again!");
-            }
             String userLogin = jwtProvider.getLoginFromToken(token);
             CustomUserDetails customUserDetails = customUserDetailsService.loadUserByUsername(userLogin);
             UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(

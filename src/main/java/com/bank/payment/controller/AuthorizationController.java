@@ -1,16 +1,20 @@
 package com.bank.payment.controller;
 
 import com.bank.payment.configuration.jwt.JwtProvider;
-import com.bank.payment.exception.JwtAuthenticationException;
+import com.bank.payment.model.UserEntity;
+import com.bank.payment.model.dto.ErrorMessage;
 import com.bank.payment.model.dto.RegistrationRequestDto;
 import com.bank.payment.model.dto.RequestDto;
 import com.bank.payment.model.dto.ResponseUserDto;
-import com.bank.payment.model.UserEntity;
 import com.bank.payment.service.TokenService;
 import com.bank.payment.service.UserService;
+import lombok.extern.java.Log;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
+@Log
 public class AuthorizationController {
     private final UserService userService;
     private final TokenService tokenService;
@@ -39,10 +43,10 @@ public class AuthorizationController {
     }
 
     @PostMapping("/login")
-    public ResponseUserDto auth(@RequestBody RequestDto request) {
+    public ResponseEntity<?> login(@RequestBody RequestDto request) {
         UserEntity userEntity = userService.findByLoginAndPassword(request.getLogin(), request.getPassword());
         String token = jwtProvider.generateToken(userEntity.getLogin());
-        return new ResponseUserDto(token);
+        return ResponseEntity.ok(new ResponseUserDto(token));
     }
 
 //    todo перед каждым запросом проверять в jwtFilter на соответствие предоставленного пользователем токена хранящемуся в бд token_table
@@ -65,12 +69,18 @@ public class AuthorizationController {
         return new ResponseUserDto(login);
     }
 
-    //todo выход пользователя из системы - token размещается в игнор лист в бд и становится недействительным
     @PostMapping("/user/{user}/logout")
-    public String logout(@PathVariable(name = "user") String username) {
+    public ResponseEntity<?> logout(@PathVariable(name = "user") String username) {
         String token = jwtProvider.getTokenFromUsername();
+        if (!tokenService.checkToken(token)) {
+            log.severe("Access denied. Please register or login again!");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ErrorMessage.builder()
+                    .code(HttpStatus.FORBIDDEN.value())
+                    .message("Access denied. Please register or login again!")
+                    .build());
+        }
         UserEntity userEntity = userService.findByLogin(username);
         tokenService.addTokenInIgnoreList(token, userEntity);
-        return username + " logged out";
+        return ResponseEntity.ok(username + " logged out");
     }
 }

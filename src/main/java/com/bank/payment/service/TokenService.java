@@ -29,6 +29,10 @@ public class TokenService {
         tokenEntityRepository.save(tokenEntity);
     }
 
+    public boolean checkToken(String token) {
+        return tokenEntityRepository.findByTokenName(token) == null;
+    }
+
     private Date addDate(Date date) {
         Calendar calendar = Calendar.getInstance();
         calendar.setTime(date);

@@ -3,7 +3,6 @@ package com.bank.payment.configuration.jwt;
 import com.bank.payment.exception.JwtAuthenticationException;
 import io.jsonwebtoken.*;
 import lombok.extern.java.Log;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
@@ -16,6 +15,7 @@ import java.util.Date;
 @Component
 @Log
 public class JwtProvider {
+    private final HttpServletRequest request;
 
     @Value("${jwt.token.secret}")
     private String secretKey;
@@ -29,13 +29,15 @@ public class JwtProvider {
     @Value("${jrt.token.key}")
     private String TOKEN_KEY;
 
-    @Autowired
-    private HttpServletRequest request;
+    public JwtProvider(HttpServletRequest request) {
+        this.request = request;
+    }
 
     public String generateToken(String login) {
         Date date = Date.from(LocalDate.now().plusDays(expiredDay).atStartOfDay(ZoneId.systemDefault()).toInstant());
         return Jwts.builder()
                 .setSubject(login)
+                .setIssuedAt(new Date())
                 .setExpiration(date)
                 .signWith(SignatureAlgorithm.HS512, secretKey)
                 .compact();

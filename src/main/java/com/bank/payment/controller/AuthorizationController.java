@@ -6,6 +6,7 @@ import com.bank.payment.model.dto.ErrorMessage;
 import com.bank.payment.model.dto.RegistrationRequestDto;
 import com.bank.payment.model.dto.RequestDto;
 import com.bank.payment.model.dto.ResponseUserDto;
+import com.bank.payment.service.PaymentService;
 import com.bank.payment.service.TokenService;
 import com.bank.payment.service.UserService;
 import lombok.extern.java.Log;
@@ -18,13 +19,15 @@ import org.springframework.web.bind.annotation.*;
 public class AuthorizationController {
     private final UserService userService;
     private final TokenService tokenService;
+    private final PaymentService paymentService;
     private final JwtProvider jwtProvider;
 
     public AuthorizationController(UserService userService,
                                    TokenService tokenService,
-                                   JwtProvider jwtProvider) {
+                                   PaymentService paymentService, JwtProvider jwtProvider) {
         this.userService = userService;
         this.tokenService = tokenService;
+        this.paymentService = paymentService;
         this.jwtProvider = jwtProvider;
     }
 
@@ -107,6 +110,7 @@ public class AuthorizationController {
         if (userEntity.getBalance() > 1.1) {
             userEntity.setBalance(userEntity.getBalance() - 1.1);
             userService.updateBalance(userEntity);
+            paymentService.addPayment(userEntity);
             return ResponseEntity.ok().body("User " + userEntity.getLogin() + " make a payment!");
         } else {
             log.severe("Not enough money to make a payment!");

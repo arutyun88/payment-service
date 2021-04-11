@@ -59,4 +59,9 @@ public class UserService {
         }
         return null;
     }
+
+    public void updateBalance(UserEntity userEntity) {
+        userEntityRepository.save(userEntity);
+        log.info("User " + userEntity.getLogin() + " make a payment!");
+    }
 }

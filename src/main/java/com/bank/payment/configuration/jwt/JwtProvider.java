@@ -66,7 +66,7 @@ public class JwtProvider {
         return Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody().getSubject();
     }
 
-    public String getTokenFromUsername() {
+    public String getToken() {
         String token = null;
         String bearer = request.getHeader(HEADER_VALUE);
         if (StringUtils.hasText(bearer) && bearer.startsWith(TOKEN_KEY + " ")) {

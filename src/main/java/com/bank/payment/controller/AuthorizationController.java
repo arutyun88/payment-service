@@ -45,6 +45,14 @@ public class AuthorizationController {
     @PostMapping("/login")
     public ResponseEntity<?> login(@RequestBody RequestDto request) {
         UserEntity userEntity = userService.findByLoginAndPassword(request.getLogin(), request.getPassword());
+        if (userEntity == null) {
+            log.severe("User " + request.getLogin() + " is not found");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ErrorMessage.builder()
+                    .code(HttpStatus.FORBIDDEN.value())
+                    .message("Authorization error. " + "User " + request.getLogin() +
+                            " is not found." + " Please, change your password and login again!")
+                    .build());
+        }
         String token = jwtProvider.generateToken(userEntity.getLogin());
         return ResponseEntity.ok(new ResponseUserDto(token));
     }
@@ -71,7 +79,7 @@ public class AuthorizationController {
 
     @PostMapping("/user/{user}/logout")
     public ResponseEntity<?> logout(@PathVariable(name = "user") String username) {
-        String token = jwtProvider.getTokenFromUsername();
+        String token = jwtProvider.getToken();
         if (!tokenService.checkToken(token)) {
             log.severe("Access denied. Please register or login again!");
             return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ErrorMessage.builder()
@@ -82,5 +90,30 @@ public class AuthorizationController {
         UserEntity userEntity = userService.findByLogin(username);
         tokenService.addTokenInIgnoreList(token, userEntity);
         return ResponseEntity.ok(username + " logged out");
+    }
+
+    @PostMapping("/user/payment")
+    public ResponseEntity<?> payment() {
+        String token = jwtProvider.getToken();
+        if (!tokenService.checkToken(token)) {
+            log.severe("Access denied. Please register or login again!");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ErrorMessage.builder()
+                    .code(HttpStatus.FORBIDDEN.value())
+                    .message("Access denied. Please register or login again!")
+                    .build());
+        }
+        String username = jwtProvider.getLoginFromToken(token);
+        UserEntity userEntity = userService.findByLogin(username);
+        if (userEntity.getBalance() > 1.1) {
+            userEntity.setBalance(userEntity.getBalance() - 1.1);
+            userService.updateBalance(userEntity);
+            return ResponseEntity.ok().body("User " + userEntity.getLogin() + " make a payment!");
+        } else {
+            log.severe("Not enough money to make a payment!");
+            return ResponseEntity.status(HttpStatus.FORBIDDEN).body(ErrorMessage.builder()
+                    .code(HttpStatus.FORBIDDEN.value())
+                    .message("Not enough money to make a payment!")
+                    .build());
+        }
     }
 }

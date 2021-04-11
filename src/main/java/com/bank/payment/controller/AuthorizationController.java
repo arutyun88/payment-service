@@ -29,7 +29,7 @@ public class AuthorizationController {
     }
 
     @PostMapping("/register")
-    public String registerUser(@RequestBody RegistrationRequestDto registrationRequestDto) {
+    public ResponseEntity<?> registerUser(@RequestBody RegistrationRequestDto registrationRequestDto) {
         UserEntity userEntity = new UserEntity();
         userEntity.setPassword(registrationRequestDto.getPassword());
         userEntity.setLogin(registrationRequestDto.getLogin());
@@ -39,7 +39,7 @@ public class AuthorizationController {
         userEntity.setBalance(8.0d);
         userEntity.setActive(true);
         userService.saveUser(userEntity, registrationRequestDto.getRole());
-        return "OK";
+        return ResponseEntity.status(HttpStatus.OK).body("User " + userEntity.getLogin() + " registered");
     }
 
     @PostMapping("/login")
